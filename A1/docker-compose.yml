@@ -1,0 +1,19 @@
+version: "3.0"
+services:
+  web:
+    image: ad368540/webv2:web
+    hostname: web
+    ports:
+      - "5000:5000"
+    volumes:
+      - "./:/app"
+    entrypoint: ["python","app.py"]
+
+  hash:
+    image: ad368540/hashv2:hash
+    hostname: compute
+    expose:
+      - "3001:3001"
+    volumes:
+      - "./:/data"
+    entrypoint: ["python","hasher.py"]
