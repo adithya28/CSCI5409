@@ -11,24 +11,21 @@ def clean_input():
     try:
         response_dict = dict()
         request_data=json.loads(request.data)
-        if(len(request_data)<=0):
-            response_dict['file']="invalid input"
-            response_dict['error']="file not found"
-        elif not path.exists('/app/' + request_data['file']):
+        if(request_data['file']==None or request_data['file']=='null'):
+            response_dict['file']=None
+            response_dict['error']="Invalid JSON input."
+        elif(not path.exists('/app/'+ request_data['file'])):
             response_dict['file']=request_data['file']
             response_dict['error']="File not found."
-        elif(request_data['file']==None or request_data['file']=='null'):
-            response_dict['file']=request_data['file']
-            response_dict['error']="Invalid JSON input."
         else:
             checksum=get_checksum(request_data)
             response_dict['file']=request_data['file']
             response_dict['checksum']=checksum.content.decode()
         return response_dict
     except:
-      response_dict['file'] = "Invalid JSON input."
-      response_dict['error'] = "file not found"
-      return response_dict
+        response_dict['file'] = None
+        response_dict['error'] = "Invalid JSON input."
+        return response_dict
 
 def get_checksum(request_data):
     query = {'file':request_data['file']}
