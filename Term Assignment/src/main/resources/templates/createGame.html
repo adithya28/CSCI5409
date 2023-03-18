@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Create a new Tic Tac Toe game</title>
+    <link href="/toastr.css" type="text/css" rel="stylesheet"/>
+    <link href="/tictactoe.css" type="text/css" rel="stylesheet"/>
+</head>
+<body>
+<div class="game-info">
+    <div class="text-white">Game URL: <span id="gameURL" class="text-cyan"></span></div>
+</div>
+<div id="dialog-form">
+    <form>
+          <input type="button" id="btn" name="buttonExecute" onclick="createGame()" value="Create Game!!!">
+    </form>
+</div>
+<div id="game-list" class="col card rounded bg-dark text-white">
+        <div class="display-5">Available Games
+        <table class="table text-center">
+            <tr class="m-2 p-2 bg-dark text-white"  th:each="game: ${available_games}">
+                <td class="col m-2 bg-dark text-white" th:text="${game.gameID}" ></td>
+                <form>
+                <td class="col m-2 bg-dark text-white" >
+                    <script th:inline="javascript">
+                        /*<![CDATA[*/
+                        function moveToGame()
+                        {
+                            var currentGameID = [[${game.gameID}]];
+                                window.location.replace( 'http://localhost:8080/game/'+currentGameID.trim());
+                        }
+                     /*]]>*/
+                    </script>
+                    <input type="button" onclick="moveToGame()" value = "Join Game">
+                </td>
+                </form>
+            </tr>
+        </table>
+        </div>
+</div>
+<script src="/sockjs.min.js"></script>
+<script src="/stomp.min.js"></script>
+<script src="/jquery-3.5.1.min.js"></script>
+<script src="/toastr.js"></script>
+<script src="/createGame.js"></script>
+</body>
+</html>
