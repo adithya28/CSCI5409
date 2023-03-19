@@ -5,6 +5,44 @@
     <link href="/toastr.css" type="text/css" rel="stylesheet"/>
     <link href="/tictactoe.css" type="text/css" rel="stylesheet"/>
 </head>
+<body>
+<div class="game-content">
+    <div class="card">
+        <div class="game-info">
+            <div class="text-white">Player 1: <span id="hostPlayer" class="text-red"></span></div>
+            <div class="text-white">Player 2: <span id="guestPlayer" class="text-red"></span></div>
+            <div class="text-white">Turn: <span id="turn" class="text-red"></span></div>
+            <div class="text-white">Winner: <span id="winner" class="text-red">-</span></div>
+        </div>
+        <div id="board">
+            <div th:each="row, state : ${board}" th:class="${#strings.concat('row row-', state.index)}">
+                <div th:each="cell, state2 : ${row}" th:class="${#strings.concat('cell cell-', state2.index)}">
+                    <button th:if="${cell == ' '}" th:onclick="makeMove(' + ${state2.index} + ')"
+                            th:text="' '"></button>
+                    <span th:if="${cell != ' '}" th:text="${cell}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="dialog-form" title="Create new user">
+    <p>Please enter the following information:</p>
+    <form>
+        <fieldset>
+            <label for="username">Player Name:</label>
+            <input type="text" name="username" id="username" class="text ui-widget-content ui-corner-all">
+            <br>
+            <label for="discordname">Discord Name:</label>
+            <input type="text" name="discordname" id="discordname" class="text ui-widget-content ui-corner-all">
+        </fieldset>
+    </form>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="/jquery-ui.js"></script>
+<script src="/sockjs.min.js"></script>
+<script src="/stomp.min.js"></script>
+<script src="/toastr.js"></script>
+<script src="/game.js"></script>
 <script type="text/javascript">
     $(function () {
         $("#dialog-form" ).dialog({
@@ -30,44 +68,7 @@
                 $('#discordname').val('');
             }
         });
-    } );
+    });
 </script>
-<body>
-<div class="game-content">
-    <div class="card">
-        <div class="game-info">
-            <div class="text-white">Player 1: <span id="hostPlayer" class="text-red"></span></div>
-            <div class="text-white">Player 2: <span id="guestPlayer" class="text-red"></span></div>
-            <div class="text-white">Turn: <span id="turn" class="text-red"></span></div>
-            <div class="text-white">Winner: <span id="winner" class="text-red">-</span></div>
-        </div>
-        <div id="board">
-            <div th:each="row, state : ${board}" th:class="${#strings.concat('row row-', state.index)}">
-                <div th:each="cell, state2 : ${row}" th:class="${#strings.concat('cell cell-', state2.index)}">
-                    <button th:if="${cell == ' '}" th:onclick="'makeMove(' + ${state2.index} + ')'"
-                            th:text="' '"></button>
-                    <span th:if="${cell != ' '}" th:text="${cell}"></span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div id="dialog-form" title="Create new user">
-    <p>Please enter the following information:</p>
-    <form>
-        <fieldset>
-            <label for="username">Player Name:</label>
-            <input type="text" name="username" id="username" class="text ui-widget-content ui-corner-all">
-            <br>
-            <label for="discordname">DiscordName:</label>
-            <input type="text" name="discordname" id="discordname" class="text ui-widget-content ui-corner-all">
-        </fieldset>
-    </form>
-</div>
-<script src="/sockjs.min.js"></script>
-<script src="/stomp.min.js"></script>
-<script src="/jquery-3.5.1.min.js"></script>
-<script src="/toastr.js"></script>
-<script src="/game.js"></script>
 </body>
 </html>

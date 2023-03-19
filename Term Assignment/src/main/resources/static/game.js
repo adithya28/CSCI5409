@@ -2,19 +2,11 @@ let stompClient = null;
 let game = null;
 let player = null;
 
-/**
- * Sends a message to the server using the STOMP client.
- * @param {Object} message - The message to be sent. Must contain at least a "type" field.
- */
 const sendMessage = (message) => {
     var messageType = message.type
     stompClient.send('/app/'+ messageType, {}, JSON.stringify(message));
 }
 
-/**
- * Sends a move message to the server.
- * @param {Number} move - The index of the cell where the move should be made.
- */
 const makeMove = (move) => {
     sendMessage({
         type: "makeMove",
@@ -25,9 +17,6 @@ const makeMove = (move) => {
     });
 }
 
-/**
- * An object containing functions to handle each type of message received from the server.
- */
 const messagesTypes = {
     "joinGame": (message) => {
         updateGame(message);
@@ -66,18 +55,12 @@ const messagesTypes = {
     }
 }
 
-/**
- * Handles a message received from the server.
- * @param {Object} message - The message received.
- */
 const handleMessage = (message) => {
     if (messagesTypes[message.type])
         messagesTypes[message.type](message);
 }
 
-/**
- * Converts a message received from the server into a game object.
- */
+
 const messageToGame = (message) => {
     return {
         gameID: message.gameID,
@@ -90,10 +73,6 @@ const messageToGame = (message) => {
     }
 }
 
-/**
- * Displays a success message with the name of the winning player.
- * @param {String} winner - The name of the winning player.
- */
 const showWinner = (winner) => {
     toastr.success(`The winner is ${winner}!`);
     const winningPositions = getWinnerPositions(game.board);
@@ -107,9 +86,6 @@ const showWinner = (winner) => {
     }
 }
 
-/**
- * Starts the process of joining a game. Asks the player to enter their name and sends a message to the server requesting to join the game.
- */
 const joinGame = () => {
     var currentGameID = window.location.href.trim().substring(27,34);
     const playerName = localStorage.getItem("playerName");
@@ -120,9 +96,6 @@ const joinGame = () => {
     });
 }
 
-/**
- * Connects the STOMP client to the server and subscribes to the "/topic/game.state" topic.
- */
 const connect = () => {
     const socket = new SockJS('/ws');
     stompClient = Stomp.over(socket);
@@ -133,23 +106,15 @@ const connect = () => {
         loadGame();
     });
 }
-
-/**
- * Attempts to load a game by joining with the player's previously stored name, or prompts the player to enter their name if no name is stored.
- */
 const loadGame = () => {
     let playerName = localStorage.getItem("playerName");
     if (!playerName) {
-        playerName=document.getElementById(#username);
+        playerName=document.getElementById('#username');
        localStorage.setItem("playerName", playerName);
     }
     joinGame();
  }
 
-/**
- * Updates the game state with the information received from the server.
- * @param {Object} message - The message received from the server.
- */
 const updateGame = (message) => {
     game = messageToGame(message);
     updateBoard(message.gameBoard);
@@ -158,11 +123,6 @@ const updateGame = (message) => {
     document.getElementById("turn").innerHTML = game.turn;
     document.getElementById("winner").innerHTML = game.winner || '-';
 }
-
-/**
- * Updates the game board with the information received from the server.
- * @param {Array} board - The board received from the server.
- */
 const updateBoard = (board) => {
     let counter = 0;
     board.forEach((row, rowIndex) => {
@@ -174,10 +134,6 @@ const updateBoard = (board) => {
     });
 }
 
-/**
- * Get the winner positions from the board.
- * @param {Array} board - The board received from the server.
- */
 const getWinnerPositions = (board) => {
     const winnerPositions = [];
 
