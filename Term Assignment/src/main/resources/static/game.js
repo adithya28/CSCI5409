@@ -89,11 +89,13 @@ const showWinner = (winner) => {
 const joinGame = () => {
     var currentGameID = window.location.href.trim().substring(27,34);
     const playerName = localStorage.getItem("playerName");
+    const discordName = localStorage.getItem("discordName");
     sendMessage({
         type: "joinGame",
         playerName: playerName,
-        gameID:currentGameID
-    });
+        gameID:currentGameID,
+        discordName: discordName
+     });
 }
 
 const connect = () => {
@@ -103,14 +105,15 @@ const connect = () => {
         stompClient.subscribe('/topic/updateGameState', function (message) {
             handleMessage(JSON.parse(message.body));
         });
-        loadGame();
+        //loadGame();
     });
 }
-const loadGame = () => {
+const loadGame = (username,discordname) => {
     let playerName = localStorage.getItem("playerName");
     if (!playerName) {
-        playerName=document.getElementById('#username');
+       playerName=username;
        localStorage.setItem("playerName", playerName);
+       localStorage.setItem("discordName",discordname);
     }
     joinGame();
  }

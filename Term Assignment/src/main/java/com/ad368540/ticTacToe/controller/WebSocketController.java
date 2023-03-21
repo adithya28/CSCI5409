@@ -2,6 +2,7 @@ package com.ad368540.ticTacToe.controller;
 
 import com.ad368540.ticTacToe.model.*;
 import com.ad368540.ticTacToe.repos.GameInfoRepository;
+import com.ad368540.ticTacToe.repos.PlayerInfoRepository;
 import com.ad368540.ticTacToe.repos.SessionInfoRepository;
 import com.ad368540.ticTacToe.repos.TicTacToeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +17,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.util.Objects;
 
 @Controller
 public class WebSocketController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    @Autowired
+    private PlayerInfoRepository playerInfoRepository;
     @Autowired
     SessionInfoRepository sessionInfoRepository;
     @Autowired
@@ -31,6 +35,11 @@ public class WebSocketController {
     @MessageMapping("/joinGame")
     @SendTo("/topic/updateGameState")
     public Object joinGame(@Payload JoinMessage message) {
+        PlayerInfoModel playerInfoModel = new PlayerInfoModel();
+        playerInfoModel.setPlayerName(message.getPlayerName());
+        playerInfoModel.setDiscordName(message.getDiscordName());
+        playerInfoModel.setGameID(message.getGameID());
+        playerInfoRepository.save(playerInfoModel);
         boolean joined = ticTacToeRepository.joinGame(message.getPlayerName(),message.getGameID());
         if (!joined) {
             TicTacToeMessage errorMessage = new TicTacToeMessage();
@@ -87,10 +96,10 @@ public class WebSocketController {
         }
     }
     @EventListener
-    private void handleSessionConnected(SessionConnectEvent event) {
+    public void handleSessionConnected(SessionConnectEvent event) {
         SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
         if(headers.containsNativeHeader("login")) {
-            String gameID = headers.getNativeHeader("login").get(0);
+            String gameID = Objects.requireNonNull(headers.getNativeHeader("login")).get(0);
             // We store the session as we need to be idempotent in the disconnect event processing
             SessionInfoModel currentSession = new SessionInfoModel();
             currentSession.setSessionID(headers.getSessionId());

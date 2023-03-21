@@ -7,11 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class JoinMessage {
-    private String type;
-    private String gameID;
+public class PlayerInfoModel {
     private String playerName;
     private String discordName;
-    private String content;
-
+    private String gameID;
 }
