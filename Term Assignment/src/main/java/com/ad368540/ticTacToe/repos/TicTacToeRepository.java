@@ -37,7 +37,8 @@ public class TicTacToeRepository {
             currentGame.setHostPlayer(player);
         else if (currentGame.getGuestPlayer()==null)
             currentGame.setGuestPlayer(player);
-        currentGame.setGameState(GameState.PLAYER1_TURN);
+        if(!currentGame.getHostPlayer().equals("")&&currentGame.getGuestPlayer()!=null)
+            currentGame.setGameState(GameState.PLAYER1_TURN);
         currentGame.setCurrentTurn(currentGame.getHostPlayer());
         gameInfoRepository.updateModel(currentGame);
         return true;
@@ -61,18 +62,18 @@ public class TicTacToeRepository {
         String[][] gameBoard =currentGame.fetchGameBoard();
         if (gameBoard[row][col].equals(" ")) {
             gameBoard[row][col] = Objects.equals(player, currentGame.getHostPlayer()) ? "X" : "O";
-            if(player.equals(currentGame.getHostPlayer()))
+            if(player.equals(currentGame.getHostPlayer())&&currentGame.getGameState()!=GameState.WAITING_FOR_PLAYER)
                 currentGame.setCurrentTurn(currentGame.getGuestPlayer());
-            else
+            else if(player.equals(currentGame.getGuestPlayer())&&currentGame.getGameState()!=GameState.WAITING_FOR_PLAYER)
                 currentGame.setCurrentTurn(currentGame.getHostPlayer());
             currentGame.saveGameBoard(gameBoard);
             gameInfoRepository.updateModel(currentGame);
-
-            updateGameState(gameID);
+            if(currentGame.getGameState()!=GameState.WAITING_FOR_PLAYER)
+                updateGameState(gameID);
         }
     }
     public boolean isGameOver(String gameID) {
-       return isBoardFull(gameID);
+        return (isBoardFull(gameID)) || (checkWinner(gameID).getWinner()!=null);
     }
     private boolean isBoardFull(String gameID) {
         GameInfoModel currentGame = gameInfoRepository.findGameById(gameID);
@@ -131,7 +132,6 @@ public class TicTacToeRepository {
         if (Objects.equals(currentGame.fetchGameBoard()[0][0], currentGame.fetchGameBoard()[1][1]) && Objects.equals(currentGame.fetchGameBoard()[0][0], currentGame.fetchGameBoard()[2][2])) {
             if (!Objects.equals(currentGame.fetchGameBoard()[0][0], " ")) {
                 currentGame.setWinner(Objects.equals(currentGame.fetchGameBoard()[0][0], "X") ? currentGame.getHostPlayer() : currentGame.getGuestPlayer());
-
             }
         }
         return currentGame;

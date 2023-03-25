@@ -4,7 +4,7 @@ const createGame = () => {
     document.getElementById("gameURL").innerHTML = 'http://localhost:8080/game/'+gameID.trim();
     sendMessage({
         gameID:gameID,
-        type: "game.create",
+        type: "createGame",
     });
 }
 const connect = () => {

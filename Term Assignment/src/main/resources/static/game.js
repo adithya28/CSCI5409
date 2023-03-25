@@ -26,13 +26,13 @@ const messagesTypes = {
         if (message.gameState === 'TIE') toastr.success(`Game over! It's a tie!`);
         else showWinner(message.winner);
     },
-    "game.joined": (message) => {
-        if (game !== null && game.gameID !== message.gameID) return;
+    "joinedGame": (message) => {
+     if (game !== null && game.gameID !== message.gameID) return;
         player = localStorage.getItem("playerName");
 
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
-        stompClient.connect(message.gameID,function (frame) {
+        stompClient.connect({},function (frame) {
             stompClient.subscribe(`/topic/game.${message.gameID}`, function (message) {
                 handleMessage(JSON.parse(message.body));
             });

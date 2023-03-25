@@ -7,12 +7,12 @@
 </head>
 <body>
 <div class="game-content">
-    <div class="card">
+    <div class="col card rounded bg-dark text-white">
         <div class="game-info">
-            <div class="text-white">Player 1: <span id="hostPlayer" class="text-red"></span></div>
-            <div class="text-white">Player 2: <span id="guestPlayer" class="text-red"></span></div>
-            <div class="text-white">Turn: <span id="turn" class="text-red"></span></div>
-            <div class="text-white">Winner: <span id="winner" class="text-red">-</span></div>
+            <div>Player 1: <span id="hostPlayer" class="text-red"></span></div>
+            <div>Player 2: <span id="guestPlayer" class="text-red"></span></div>
+            <div>Turn: <span id="turn" class="text-red"></span></div>
+            <div>Winner: <span id="winner" class="text-red">-</span></div>
         </div>
         <div id="board">
             <div th:each="row, state : ${board}" th:class="${#strings.concat('row row-', state.index)}">
@@ -25,15 +25,15 @@
         </div>
     </div>
 </div>
-<div id="dialog-form" title="Create new user">
+<div id="dialog-form" title="Create new user" class="card">
     <p>Please enter the following information:</p>
     <form>
         <fieldset>
             <label for="username">Player Name:</label>
-            <input type="text" name="username" id="username" class="text ui-widget-content ui-corner-all">
+            <input type="text" name="username" id="username">
             <br>
             <label for="discordname">Discord Name:</label>
-            <input type="text" name="discordname" id="discordname" class="text ui-widget-content ui-corner-all">
+            <input type="text" name="discordname" id="discordname">
         </fieldset>
     </form>
 </div>

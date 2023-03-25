@@ -31,7 +31,6 @@ public class WebSocketController {
     TicTacToeRepository ticTacToeRepository;
     @Autowired
     GameInfoRepository gameInfoRepository;
-
     @MessageMapping("/joinGame")
     @SendTo("/topic/updateGameState")
     public Object joinGame(@Payload JoinMessage message) {
@@ -49,7 +48,7 @@ public class WebSocketController {
         }
         GameInfoModel currentGame = ticTacToeRepository.getGame(message.getGameID());
         TicTacToeMessage gameMessage = gameToMessage(currentGame);
-        gameMessage.setType("game.joined");
+        gameMessage.setType("joinedGame");
         return gameMessage;
     }
     @MessageMapping("/leaveGame")
@@ -88,7 +87,7 @@ public class WebSocketController {
                 gameStateMessage.setType("makeMove");
                 this.messagingTemplate.convertAndSend("/topic/game." + gameID, gameStateMessage);
                 if (ticTacToeRepository.isGameOver(gameID)) {
-                    TicTacToeMessage gameOverMessage = gameToMessage(game);
+                    TicTacToeMessage gameOverMessage = gameToMessage(currentGame);
                     gameOverMessage.setType("gameOver");
                     this.messagingTemplate.convertAndSend("/topic/game." + gameID, gameOverMessage);
                 }
