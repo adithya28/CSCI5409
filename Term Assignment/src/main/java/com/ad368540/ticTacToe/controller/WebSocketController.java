@@ -41,13 +41,13 @@ public class WebSocketController {
         playerInfoRepository.save(playerInfoModel);
         boolean joined = ticTacToeRepository.joinGame(message.getPlayerName(),message.getGameID());
         if (!joined) {
-            TicTacToeMessage errorMessage = new TicTacToeMessage();
+            GameMessage errorMessage = new GameMessage();
             errorMessage.setType("error");
             errorMessage.setContent("Error while joining game, Game doesn't exist, INVALID GAME ID");
             return errorMessage;
         }
         GameInfoModel currentGame = ticTacToeRepository.getGame(message.getGameID());
-        TicTacToeMessage gameMessage = gameToMessage(currentGame);
+        GameMessage gameMessage = gameToMessage(currentGame);
         gameMessage.setType("joinedGame");
         return gameMessage;
     }
@@ -55,26 +55,26 @@ public class WebSocketController {
     public void leaveGame(@Payload PlayerMessage message) {
         GameInfoModel game = ticTacToeRepository.leaveGame(message.getGameID());
         if (game != null) {
-            TicTacToeMessage gameMessage = gameToMessage(game);
+            GameMessage gameMessage = gameToMessage(game);
             gameMessage.setType("leaveGame");
             messagingTemplate.convertAndSend("/topic/game." + game.getGameID(), gameMessage);
         }
     }
     @MessageMapping("/makeMove")
-    public void makeMove(@Payload TicTacToeMessage message) {
+    public void makeMove(@Payload GameMessage message) {
         String currentPlayer = message.getSender();
         String gameID = message.getGameID();
         int move = message.getMove();
         GameInfoModel game = ticTacToeRepository.getGame(gameID);
         if (game == null || game.getGameState().equals(GameState.PLAYER1_WON)||game.getGameState().equals(GameState.PLAYER2_WON)||game.getGameState().equals(GameState.GAME_INCOMPLETE)) {
-            TicTacToeMessage errorMessage = new TicTacToeMessage();
+            GameMessage errorMessage = new GameMessage();
             errorMessage.setType("error");
             errorMessage.setContent("Game not found or is already over.");
             this.messagingTemplate.convertAndSend("/topic/game." + gameID, errorMessage);
 
         }
         else if (game.getGameState().equals(GameState.WAITING_FOR_PLAYER)) {
-            TicTacToeMessage errorMessage = new TicTacToeMessage();
+            GameMessage errorMessage = new GameMessage();
             errorMessage.setType("error");
             errorMessage.setContent("Game is waiting for another player to join.");
             this.messagingTemplate.convertAndSend("/topic/game." + gameID, errorMessage);
@@ -83,11 +83,11 @@ public class WebSocketController {
             if (game.getCurrentTurn().equals(currentPlayer)) {
                 ticTacToeRepository.makeMove(gameID, currentPlayer, move);
                 GameInfoModel currentGame= gameInfoRepository.findGameById(game.getGameID());
-                TicTacToeMessage gameStateMessage = new TicTacToeMessage(currentGame);
+                GameMessage gameStateMessage = new GameMessage(currentGame);
                 gameStateMessage.setType("makeMove");
                 this.messagingTemplate.convertAndSend("/topic/game." + gameID, gameStateMessage);
                 if (ticTacToeRepository.isGameOver(gameID)) {
-                    TicTacToeMessage gameOverMessage = gameToMessage(currentGame);
+                    GameMessage gameOverMessage = gameToMessage(currentGame);
                     gameOverMessage.setType("gameOver");
                     this.messagingTemplate.convertAndSend("/topic/game." + gameID, gameOverMessage);
                 }
@@ -117,7 +117,7 @@ public class WebSocketController {
         GameInfoModel game = ticTacToeRepository.getGame(gameID);
         if (game != null) {
                     game.setGameState(GameState.GAME_INCOMPLETE);
-                    TicTacToeMessage gameMessage = gameToMessage(game);
+                    GameMessage gameMessage = gameToMessage(game);
             gameInfoRepository.updateModel(game);
             gameMessage.setType("gameOver");
             messagingTemplate.convertAndSend("/topic/game." + game.getGameID(), gameMessage);
@@ -128,11 +128,18 @@ public class WebSocketController {
     @MessageMapping("/createGame")
     public void createGame(@Payload PlayerMessage message) {
         GameInfoModel game = ticTacToeRepository.initializeGame(message.getGameID().trim());
-        TicTacToeMessage gameMessage = gameToMessage(game);
+        GameMessage gameMessage = gameToMessage(game);
         gameMessage.setType("createGame");
         messagingTemplate.convertAndSend("/topic/game." + game.getGameID(), gameMessage);
     }
-    private TicTacToeMessage gameToMessage(GameInfoModel game) {
-        return new TicTacToeMessage(game);
+    @MessageMapping("/invokeLambda")
+    public void invokeLambda(@Payload PlayerMessage message) {
+        GameInfoModel game = ticTacToeRepository.initializeGame(message.getGameID().trim());
+        GameMessage gameMessage = gameToMessage(game);
+        gameMessage.setType("createGame");
+        messagingTemplate.convertAndSend("/topic/game." + game.getGameID(), gameMessage);
+    }
+    private GameMessage gameToMessage(GameInfoModel game) {
+        return new GameMessage(game);
     }
 }

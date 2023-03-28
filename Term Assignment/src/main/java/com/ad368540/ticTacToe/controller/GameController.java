@@ -33,10 +33,8 @@ public class GameController {
     @GetMapping({"/createGame"})
     public ModelAndView getCreateGame() {
         PageIterable<GameInfoModel> allGames = gameInfoRepository.getAllGames();
-
         List<GameInfoModel> games = new ArrayList<>();
         List<GameInfoModel> gamesList = new ArrayList<>();
-
         allGames.items().stream().forEach(games::add);
         for(GameInfoModel item:games)
         {

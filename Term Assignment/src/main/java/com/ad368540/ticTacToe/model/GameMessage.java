@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Data
-public class TicTacToeMessage {
+public class GameMessage {
     private String type;
     private String gameID;
     private String hostPlayer;
@@ -17,7 +17,7 @@ public class TicTacToeMessage {
     private int move;
     private GameState gameState;
     private String sender;
-    public TicTacToeMessage(GameInfoModel game) {
+    public GameMessage(GameInfoModel game) {
         this.gameID = game.getGameID();
         this.hostPlayer = game.getHostPlayer();
         this.guestPlayer = game.getGuestPlayer();

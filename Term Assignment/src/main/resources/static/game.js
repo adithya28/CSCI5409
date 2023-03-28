@@ -29,7 +29,6 @@ const messagesTypes = {
     "joinedGame": (message) => {
      if (game !== null && game.gameID !== message.gameID) return;
         player = localStorage.getItem("playerName");
-
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
         stompClient.connect({},function (frame) {
@@ -75,6 +74,16 @@ const messageToGame = (message) => {
 
 const showWinner = (winner) => {
     toastr.success(`The winner is ${winner}!`);
+    if(player === winner)
+    {
+        let bragMessage = prompt("Congratulations, YOU HAVE WON!!!, please type a brag message");
+        sendMessage({
+            type: "invokeLambda",
+            playerName: winner,
+            gameID:currentGameID
+        });
+
+    }
     const winningPositions = getWinnerPositions(game.board);
     if (winningPositions && winningPositions.length === 3) {
         winningPositions.forEach(position => {
