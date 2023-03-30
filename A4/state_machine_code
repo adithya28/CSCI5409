@@ -1,0 +1,65 @@
+{
+  "Comment": "Assignment 4 state machine",
+  "StartAt": "extract json",
+  "States": {
+    "extract json": {
+      "Type": "Pass",
+      "Next": "pass json",
+      "Parameters": {
+        "Result.$": "States.StringToJson($.input)"
+      }
+    },
+    "pass json": {
+      "Type": "Pass",
+      "Next": "Choice",
+      "InputPath": "$.Result"
+    },
+    "Choice": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.type",
+          "StringEquals": "CONNECT",
+          "Next": "SQS SendMessage to Connect Queue"
+        },
+        {
+          "Variable": "$.type",
+          "StringEquals": "SUBSCRIBE",
+          "Next": "SQS SendMessage to subscribe queue"
+        },
+        {
+          "Variable": "$.type",
+          "StringEquals": "PUBLISH",
+          "Next": "SQS SendMessage to Publish Queue"
+        }
+      ]
+    },
+    "SQS SendMessage to subscribe queue": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sqs:sendMessage",
+      "Parameters": {
+        "MessageBody.$": "$",
+        "QueueUrl": "https://sqs.us-east-1.amazonaws.com/588785002555/SubscribeQueue"
+      },
+      "End": true
+    },
+    "SQS SendMessage to Publish Queue": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sqs:sendMessage",
+      "Parameters": {
+        "MessageBody.$": "$",
+        "QueueUrl": "https://sqs.us-east-1.amazonaws.com/588785002555/PublishQueue"
+      },
+      "End": true
+    },
+    "SQS SendMessage to Connect Queue": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sqs:sendMessage",
+      "Parameters": {
+        "MessageBody.$": "$",
+        "QueueUrl": "https://sqs.us-east-1.amazonaws.com/588785002555/ConnectQueue"
+      },
+      "End": true
+    }
+  }
+}
