@@ -19,24 +19,17 @@ def poll_connect_queue():
         MessageAttributeNames=[
             'All'
         ],
-        WaitTimeSeconds=20
+        WaitTimeSeconds=0
     )
-    print(response)
     message = response['Messages'][0]
     message_body = json.loads(message['Body'])
     receipt_handle = message['ReceiptHandle']
-    response = client.delete_message(
+    response = sqs.delete_message(
         QueueUrl=connect_queue_url,
         ReceiptHandle=receipt_handle
     )
-    return {
-        "statusCode": 200,
-        "body": {"type": "CONNACK", "returnCode": 0, "username": message_body["username"],
-                 "password": message_body["password"]},
-        "headers": {
-            "Content-Type": "application/json"
-        }
-    }
+    return {"type": "CONNACK", "returnCode": 0, "username": message_body["username"],
+            "password": message_body["password"]}
 
 
 def poll_subscribe_queue():
@@ -49,27 +42,21 @@ def poll_subscribe_queue():
         MessageAttributeNames=[
             'All'
         ],
-        WaitTimeSeconds=20
+        WaitTimeSeconds=0
     )
     message = response['Messages'][0]
     message_body = json.loads(message['Body'])
     receipt_handle = message['ReceiptHandle']
-    response = client.delete_message(
-        QueueUrl=connect_queue_url,
+    response = sqs.delete_message(
+        QueueUrl=subscribe_queue_url,
         ReceiptHandle=receipt_handle
     )
-    return {
-        "statusCode": 200,
-        "body": {"type": "SUBACK", "returnCode": 0},
-        "headers": {
-            "Content-Type": "application/json"
-        }
-    }
+    return {"type": "SUBACK", "returnCode": 0}
 
 
 def poll_publish_queue():
     response = sqs.receive_message(
-        QueueUrl=subscribe_queue_url,
+        QueueUrl=publish_queue_url,
         AttributeNames=[
             'SentTimestamp'
         ],
@@ -77,28 +64,25 @@ def poll_publish_queue():
         MessageAttributeNames=[
             'All'
         ],
-        WaitTimeSeconds=20
+        WaitTimeSeconds=0
     )
     message = response['Messages'][0]
     message_body = json.loads(message['Body'])
+    message_body_json = json.loads(json.dumps(message_body))
     receipt_handle = message['ReceiptHandle']
-    response = client.delete_message(
-        QueueUrl=connect_queue_url,
+    response = sqs.delete_message(
+        QueueUrl=publish_queue_url,
         ReceiptHandle=receipt_handle
     )
-    return {
-        "statusCode": 200,
-        "body": {"type": "PUBACK", "returnCode": 0, "payload": {message_body["payload"]}},
-        "headers": {
-            "Content-Type": "application/json"
-        }
-    }
+    return {"type": "PUBACK", "returnCode": 0, "payload": message_body_json["payload"]}
 
 
 def lambda_handler(event, context):
-    if (event["type"] == "PUBLISH"):
+    eventBody = json.loads(event['body'])
+    if (eventBody["type"] == "PUBLISH"):
         return poll_publish_queue()
-    elif (event["type"] == "SUBSCRIBE"):
+    elif (eventBody["type"] == "SUBSCRIBE"):
         return poll_subscribe_queue()
     return poll_connect_queue()
+
 

@@ -1,6 +1,7 @@
 let stompClient = null;
 let game = null;
 let player = null;
+let subscribedtoGame=false;
 
 const sendMessage = (message) => {
     var messageType = message.type
@@ -32,9 +33,12 @@ const messagesTypes = {
         const socket = new SockJS('/ws');
         stompClient = Stomp.over(socket);
         stompClient.connect({},function (frame) {
-            stompClient.subscribe(`/topic/game.${message.gameID}`, function (message) {
-                handleMessage(JSON.parse(message.body));
-            });
+            if(subscribedtoGame===false) {
+                stompClient.subscribe(`/topic/game.${message.gameID}`, function (message) {
+                    handleMessage(JSON.parse(message.body));
+                    subscribedtoGame=true;
+                });
+            }
         });
         updateGame(message);
     },
@@ -80,9 +84,10 @@ const showWinner = (winner) => {
         sendMessage({
             type: "invokeLambda",
             playerName: winner,
-            gameID:currentGameID
+            gameID:game.gameID,
+            content:bragMessage
         });
-
+        return;
     }
     const winningPositions = getWinnerPositions(game.board);
     if (winningPositions && winningPositions.length === 3) {
@@ -148,7 +153,6 @@ const updateBoard = (board) => {
 
 const getWinnerPositions = (board) => {
     const winnerPositions = [];
-
     for (let i = 0; i < 3; i++) {
         if (board[i][0] === board[i][1] && board[i][1] === board[i][2] && board[i][0] !== ' ') {
             winnerPositions.push(i * 3);

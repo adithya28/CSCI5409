@@ -5,6 +5,11 @@ import com.ad368540.ticTacToe.repos.GameInfoRepository;
 import com.ad368540.ticTacToe.repos.PlayerInfoRepository;
 import com.ad368540.ticTacToe.repos.SessionInfoRepository;
 import com.ad368540.ticTacToe.repos.TicTacToeRepository;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
+import com.amazonaws.services.lambda.AWSLambdaAsyncClient;
+import com.amazonaws.services.lambda.model.InvokeRequest;
+import com.amazonaws.services.lambda.model.InvokeResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -71,7 +76,6 @@ public class WebSocketController {
             errorMessage.setType("error");
             errorMessage.setContent("Game not found or is already over.");
             this.messagingTemplate.convertAndSend("/topic/game." + gameID, errorMessage);
-
         }
         else if (game.getGameState().equals(GameState.WAITING_FOR_PLAYER)) {
             GameMessage errorMessage = new GameMessage();
@@ -134,10 +138,14 @@ public class WebSocketController {
     }
     @MessageMapping("/invokeLambda")
     public void invokeLambda(@Payload PlayerMessage message) {
-        GameInfoModel game = ticTacToeRepository.initializeGame(message.getGameID().trim());
-        GameMessage gameMessage = gameToMessage(game);
-        gameMessage.setType("createGame");
-        messagingTemplate.convertAndSend("/topic/game." + game.getGameID(), gameMessage);
+        AWSLambdaAsyncClient lambdaClient = new AWSLambdaAsyncClient();
+        lambdaClient.withRegion(Region.getRegion(Regions.US_EAST_1));
+        InvokeRequest invokeRequest = new InvokeRequest();
+        invokeRequest.setInvocationType("RequestResponse"); // ENUM RequestResponse or Event
+        String lambdaPayload = "{\"discordName\":\""+message.getPlayerName()+"\",\"messageData\":\""+message.getContent()+
+                "\"}";
+        invokeRequest.withFunctionName("5409discordBot").withPayload(lambdaPayload);
+        InvokeResult invoke = lambdaClient.invoke(invokeRequest);
     }
     private GameMessage gameToMessage(GameInfoModel game) {
         return new GameMessage(game);
