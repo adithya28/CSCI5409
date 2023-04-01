@@ -12,6 +12,7 @@ import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -130,7 +131,7 @@ public class WebSocketController {
         }
     }
     @MessageMapping("/createGame")
-    public void createGame(@Payload PlayerMessage message) {
+    public void createGame(@Payload PlayerMessage message) throws MessagingException {
         GameInfoModel game = ticTacToeRepository.initializeGame(message.getGameID().trim());
         GameMessage gameMessage = gameToMessage(game);
         gameMessage.setType("createGame");
