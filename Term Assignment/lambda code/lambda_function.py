@@ -44,4 +44,6 @@ def lambda_handler(event, context):
     target_user_name=user_details[0]
     target_discriminator=user_details[1]
     client.run(secret)
-    return 200
+    return {
+        'statusCode': 200,
+    }
