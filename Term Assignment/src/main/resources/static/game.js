@@ -34,10 +34,11 @@ const messagesTypes = {
         stompClient = Stomp.over(socket);
         stompClient.connect({},function (frame) {
             if(subscribedtoGame===false) {
+                subscribedtoGame=true;
+                console.log(subscribedtoGame);
                 stompClient.subscribe(`/topic/game.${message.gameID}`, function (message) {
                     handleMessage(JSON.parse(message.body));
-                    subscribedtoGame=true;
-                });
+                   });
             }
         });
         updateGame(message);

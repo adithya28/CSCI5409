@@ -15,7 +15,6 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortK
 public class PlayerInfoModel {
     @Getter(onMethod_={@DynamoDbPartitionKey})
     private String playerName;
-    @Getter(onMethod_={@DynamoDbSortKey})
     private String discordName;
     private String gameID;
 }
