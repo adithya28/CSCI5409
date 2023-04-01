@@ -141,8 +141,15 @@ public class WebSocketController {
         AWSLambdaAsyncClient lambdaClient = new AWSLambdaAsyncClient();
         lambdaClient.withRegion(Region.getRegion(Regions.US_EAST_1));
         InvokeRequest invokeRequest = new InvokeRequest();
-        invokeRequest.setInvocationType("RequestResponse"); // ENUM RequestResponse or Event
-        String lambdaPayload = "{\"discordName\":\""+message.getPlayerName()+"\",\"messageData\":\""+message.getContent()+
+        String targetPlayer=null;
+        String targetDiscordName=null;
+        if(gameInfoRepository.findGameById(message.getGameID()).getHostPlayer().equals(message.getPlayerName()))
+            targetPlayer=gameInfoRepository.findGameById(message.getGameID()).getGuestPlayer();
+        else
+            targetPlayer=gameInfoRepository.findGameById(message.getGameID()).getHostPlayer();
+        targetDiscordName=playerInfoRepository.findPlayerInfoByName(targetPlayer).getDiscordName();
+        invokeRequest.setInvocationType("RequestResponse");
+        String lambdaPayload = "{\"discordName\":\""+targetDiscordName+"\",\"messageData\":\""+message.getContent()+
                 "\"}";
         invokeRequest.withFunctionName("5409discordBot").withPayload(lambdaPayload);
         InvokeResult invoke = lambdaClient.invoke(invokeRequest);
