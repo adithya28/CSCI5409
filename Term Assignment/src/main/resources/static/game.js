@@ -3,6 +3,8 @@ let game = null;
 let player = null;
 let subscribedtoGame=false;
 
+//Referred to https://github.com/Joabsonlg/ for handling socket messages and subscriptions, so it uses a similar structure.
+
 const sendMessage = (message) => {
     var messageType = message.type
     stompClient.send('/app/'+ messageType, {}, JSON.stringify(message));
@@ -120,7 +122,6 @@ const connect = () => {
         stompClient.subscribe('/topic/updateGameState', function (message) {
             handleMessage(JSON.parse(message.body));
         });
-        //loadGame();
     });
 }
 const loadGame = (username,discordname) => {
