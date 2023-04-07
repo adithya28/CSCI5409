@@ -20,11 +20,17 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Objects;
-
 @Controller
 public class WebSocketController {
     @Autowired
@@ -138,22 +144,24 @@ public class WebSocketController {
         messagingTemplate.convertAndSend("/topic/game." + game.getGameID(), gameMessage);
     }
     @MessageMapping("/invokeLambda")
-    public void invokeLambda(@Payload PlayerMessage message) {
-        AWSLambdaAsyncClient lambdaClient = new AWSLambdaAsyncClient();
-        lambdaClient.withRegion(Region.getRegion(Regions.US_EAST_1));
-        InvokeRequest invokeRequest = new InvokeRequest();
+    public void invokeLambda(@Payload PlayerMessage message) throws IOException, InterruptedException {
         String targetPlayer=null;
         String targetDiscordName=null;
+        String apiEndpoint = "https://cbn5i50p3c.execute-api.us-east-1.amazonaws.com/5409discordBot";
+        HttpClient client = HttpClient.newHttpClient();
         if(gameInfoRepository.findGameById(message.getGameID()).getHostPlayer().equals(message.getPlayerName()))
             targetPlayer=gameInfoRepository.findGameById(message.getGameID()).getGuestPlayer();
         else
             targetPlayer=gameInfoRepository.findGameById(message.getGameID()).getHostPlayer();
         targetDiscordName=playerInfoRepository.findPlayerInfoByName(targetPlayer).getDiscordName();
-        invokeRequest.setInvocationType("RequestResponse");
         String lambdaPayload = "{\"discordName\":\""+targetDiscordName+"\",\"messageData\":\""+message.getContent()+
                 "\"}";
-        invokeRequest.withFunctionName("5409discordBot").withPayload(lambdaPayload);
-        InvokeResult invoke = lambdaClient.invoke(invokeRequest);
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(apiEndpoint))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(lambdaPayload))
+                .build();
+        client.send(request, HttpResponse.BodyHandlers.ofString());
     }
     private GameMessage gameToMessage(GameInfoModel game) {
         return new GameMessage(game);

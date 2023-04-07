@@ -26,8 +26,17 @@ const messagesTypes = {
     },
     "gameOver": (message) => {
         updateGame(message);
-        if (message.gameState === 'TIE') toastr.success(`Game over! It's a tie!`);
-        else showWinner(message.winner);
+        if (message.gameState === 'TIE') {
+            toastr.success(`Game over! It's a tie!`);
+            document.getElementById("gameOver").play();
+        }
+        else {
+            if(message.winner===player)
+            {
+                document.getElementById("winSound").play();
+            }
+            showWinner(message.winner);
+        }
     },
     "joinedGame": (message) => {
      if (game !== null && game.gameID !== message.gameID) return;
@@ -46,6 +55,7 @@ const messagesTypes = {
         updateGame(message);
     },
     "makeMove": (message) => {
+        document.getElementById("makeMove").play();
         updateGame(message);
     },
     "leaveGame": (message) => {
@@ -58,6 +68,8 @@ const messagesTypes = {
     },
     "error": (message) => {
         toastr.error(message.content);
+        document.getElementById("gameOver").play();
+        audio.play();
     }
 }
 
