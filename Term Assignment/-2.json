@@ -1,0 +1,542 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Cfn Template for Term Assignment",
+  "Resources": {
+    "GameInfo": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "GameInfo",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "gameID",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "gameID",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput" : {
+          "ReadCapacityUnits" : 3,
+          "WriteCapacityUnits" : 3
+        }
+      }
+    },
+    "PlayerInfo": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "PlayerInfo",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "playerName",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "playerName",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput" : {
+          "ReadCapacityUnits" : 3,
+          "WriteCapacityUnits" : 3
+        }
+      }
+    },
+    "SessionInfo": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "TableName": "SessionInfo",
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "sessionID",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "sessionID",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput" : {
+          "ReadCapacityUnits" : 3,
+          "WriteCapacityUnits" : 3
+        }
+      }
+    },
+    "LabVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "5409TermAssignmentVPC"
+          }
+        ]
+      }
+    },
+    "publicSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": "us-east-1a",
+        "CidrBlock": "10.0.1.0/24",
+        "EnableDns64": false,
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "publicSubnet"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "LabVPC"
+    },
+    "publicSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": "us-east-1b",
+        "CidrBlock": "10.0.3.0/24",
+        "EnableDns64": false,
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "publicSubnet2"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "LabVPC"
+    },
+    "privateSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": "us-east-1a",
+        "CidrBlock": "10.0.2.0/24",
+        "EnableDns64": false,
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "privateSubnet"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "LabVPC"
+    },
+    "privateSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": "us-east-1b",
+        "CidrBlock": "10.0.4.0/24",
+        "EnableDns64": false,
+        "MapPublicIpOnLaunch": false,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "privateSubnet2"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "LabVPC"
+    },
+    "5409Igw": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "5409Igw"
+          }
+        ]
+      },
+      "DependsOn": "LabVPC"
+    },
+    "5409IgwAttach": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "InternetGatewayId": {
+          "Fn::GetAtt": [
+            "5409Igw",
+            "InternetGatewayId"
+          ]
+        },
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "5409Igw"
+    },
+    "InstanceSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group for instance VPCs",
+        "GroupName": "5409InstanceSG",
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "10.0.0.0/16",
+            "Description": "private subnet Instance SG",
+            "FromPort": 80,
+            "ToPort": 443,
+            "IpProtocol": "tcp"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "LabVPC"
+    },
+    "publicRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "5409publicRouteTable"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "5409IgwAttach"
+    },
+    "privateRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "5409privateRouteTable"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "5409IgwAttach"
+    },
+    "privateRouteTableAssoc": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Fn::GetAtt": [
+            "privateRouteTable",
+            "RouteTableId"
+          ]
+        },
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "privateSubnet",
+            "SubnetId"
+          ]
+        }
+      },
+      "DependsOn": [
+        "privateSubnet",
+        "privateRouteTable"
+      ]
+    },
+    "publicRouteTableAssoc": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Fn::GetAtt": [
+            "publicRouteTable",
+            "RouteTableId"
+          ]
+        },
+        "SubnetId": {
+          "Fn::GetAtt": [
+            "publicSubnet",
+            "SubnetId"
+          ]
+        }
+      },
+      "DependsOn": [
+        "publicSubnet",
+        "publicRouteTable"
+      ]
+    },
+    "publicRTRouteIgw": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Fn::GetAtt": [
+            "5409Igw",
+            "InternetGatewayId"
+          ]
+        },
+        "RouteTableId": {
+          "Fn::GetAtt": [
+            "publicRouteTable",
+            "RouteTableId"
+          ]
+        }
+      },
+      "DependsOn": [
+        "publicSubnet",
+        "publicRouteTable",
+        "publicRouteTableAssoc",
+        "5409Igw"
+      ]
+    },
+    "privateRTRouteIgw": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": {
+          "Fn::GetAtt": [
+            "5409Igw",
+            "InternetGatewayId"
+          ]
+        },
+        "RouteTableId": {
+          "Fn::GetAtt": [
+            "publicRouteTable",
+            "RouteTableId"
+          ]
+        }
+      },
+      "DependsOn": [
+        "privateSubnet",
+        "privateRouteTable",
+        "privateRouteTableAssoc"
+      ]
+    },
+    "ELBSG": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group for Load Balancer",
+        "GroupName": "5409ELBSg",
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "public http",
+            "FromPort": 80,
+            "ToPort": 80,
+            "IpProtocol": "tcp"
+          },
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "public https",
+            "FromPort": 443,
+            "ToPort": 443,
+            "IpProtocol": "tcp"
+          }
+        ],
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": "LabVPC"
+    },
+    "5409ELB": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "IpAddressType": "ipv4",
+        "Name": "5409ELB",
+        "Scheme": "internet-facing",
+        "SecurityGroups": [
+          {
+            "Fn::GetAtt": [
+              "ELBSG",
+              "GroupId"
+            ]
+          }
+        ],
+        "Subnets": [
+          {
+            "Fn::GetAtt": [
+              "publicSubnet",
+              "SubnetId"
+            ]
+          },
+          {
+            "Fn::GetAtt": [
+              "publicSubnet2",
+              "SubnetId"
+            ]
+          }
+        ],
+        "Type": "application"
+      },
+      "DependsOn": [
+        "publicSubnet",
+        "5409TG"
+      ]
+    },
+    "5409ELBListener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "DefaultActions": [
+          {
+            "TargetGroupArn": {
+              "Fn::GetAtt": [
+                "5409TG",
+                "TargetGroupARN"
+              ]
+            },
+            "Type": "forward"
+          }
+        ],
+        "LoadBalancerArn": {
+          "Fn::GetAtt": [
+            "5409TG",
+            "LoadBalancerArns"
+          ]
+        },
+        "Port": 80,
+        "Protocol": "HTTP"
+      },
+      "DependsOn": [
+        "5409TG",
+        "5409ELB"
+      ]
+    },
+    "5409ASG": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AutoScalingGroupName": "5409ASG",
+        "AvailabilityZones": [
+          "us-east-1a"
+        ],
+        "DesiredCapacity": "1",
+        "LaunchTemplate": {
+          "LaunchTemplateId": "lt-06fe9907bc631cb2c",
+          "LaunchTemplateName": "5409LaunchTemplate",
+          "Version": "2"
+        },
+        "MaxSize": "2",
+        "MinSize": "1",
+        "LoadBalancerNames":{
+          "Fn::GetAtt": [
+            "5409ELB",
+            "LoadBalancerName"
+          ]
+        } ,
+        "VPCZoneIdentifier": [
+          {
+            "Fn::GetAtt": [
+              "privateSubnet",
+              "SubnetId"
+            ]
+          }
+        ]
+      },
+      "DependsOn": [
+        "publicSubnet",
+        "InstanceSG",
+        "5409ELB"
+      ]
+    },
+    "5409TG": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "IpAddressType": "ipv4",
+        "Name": "5409tg",
+        "Port": 80,
+        "Protocol": "HTTP",
+        "TargetType": "instance",
+        "VpcId": {
+          "Fn::GetAtt": [
+            "LabVPC",
+            "VpcId"
+          ]
+        }
+      },
+      "DependsOn": [
+        "publicSubnet",
+        "InstanceSG"
+      ]
+    },
+    "5409Lambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "ad368540-a2",
+          "S3Key": "lambda code.zip"
+        },
+        "Description": "Lambda function with Discord Bot integration",
+        "FunctionName": "5409lambda",
+        "PackageType": "Zip",
+        "Role": "arn:aws:iam::721956426461:role/service-role/5409discordBot-role-d9hdtj57",
+        "Runtime": "python3.9",
+        "Handler": "lambda_handler",
+        "Timeout": 10
+      }
+    },
+    "5409APIGateway": {
+      "Type": "AWS::ApiGatewayV2::Api",
+      "Properties": {
+        "CorsConfiguration": {
+          "AllowOrigins": [
+            "*"
+          ]
+        },
+        "Description": "Api gateway to invoke lambda function that hosts the discord bot",
+        "DisableExecuteApiEndpoint": true,
+        "Name": "5409ApiGateway",
+        "ProtocolType": "HTTP",
+        "Target": {
+          "Fn::GetAtt": [
+            "5409Lambda",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "5409Lambda",
+        "InstanceSG"
+      ]
+    }
+  }
+}

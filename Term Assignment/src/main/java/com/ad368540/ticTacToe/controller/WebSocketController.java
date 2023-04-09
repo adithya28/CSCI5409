@@ -11,6 +11,7 @@ import com.amazonaws.services.lambda.AWSLambdaAsyncClient;
 import com.amazonaws.services.lambda.model.InvokeRequest;
 import com.amazonaws.services.lambda.model.InvokeResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -43,6 +44,8 @@ public class WebSocketController {
     TicTacToeRepository ticTacToeRepository;
     @Autowired
     GameInfoRepository gameInfoRepository;
+    @Value("${amazon.apigateway.endpoint}")
+    private String apiEndpoint;
     @MessageMapping("/joinGame")
     @SendTo("/topic/updateGameState")
     public Object joinGame(@Payload JoinMessage message) {
@@ -147,7 +150,6 @@ public class WebSocketController {
     public void invokeLambda(@Payload PlayerMessage message) throws IOException, InterruptedException {
         String targetPlayer=null;
         String targetDiscordName=null;
-        String apiEndpoint = "https://cbn5i50p3c.execute-api.us-east-1.amazonaws.com/5409discordBot";
         HttpClient client = HttpClient.newHttpClient();
         if(gameInfoRepository.findGameById(message.getGameID()).getHostPlayer().equals(message.getPlayerName()))
             targetPlayer=gameInfoRepository.findGameById(message.getGameID()).getGuestPlayer();

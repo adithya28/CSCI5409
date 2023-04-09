@@ -26,8 +26,7 @@
                         /*<![CDATA[*/
                         function moveToGame()
                         {
-                            var currentGameID = [[${game.gameID}]];
-                                window.location.replace( 'http://localhost:8080/game/'+currentGameID.trim());
+                            window.location.replace( "/game/"+[[${game.gameID}]].trim());
                         }
                      /*]]>*/
                     </script>
@@ -40,6 +39,7 @@
 </div>
 <script src="/sockjs.min.js"></script>
 <script src="/stomp.min.js"></script>
+<script src="/jquery.js"></script>
 <script src="/jquery-ui.js"></script>
 <script src="/toastr.js"></script>
 <script src="/createGame.js"></script>

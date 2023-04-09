@@ -1,7 +1,7 @@
 var gameID;
 const createGame = () => {
     gameID=generateString(7).trim();
-    document.getElementById("gameURL").innerHTML = 'http://localhost:8080/game/'+gameID.trim();
+    document.getElementById("gameURL").innerHTML = 'http://ad368540-ta5409/game/'+gameID.trim();
     sendMessage({
         gameID:gameID,
         type: "createGame",

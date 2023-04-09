@@ -116,7 +116,7 @@ const showWinner = (winner) => {
 }
 
 const joinGame = () => {
-    var currentGameID = window.location.href.trim().substring(27,34);
+    var currentGameID = window.location.href.trim().substring(window.location.href.trim().lastIndexOf('/') + 1)
     const playerName = localStorage.getItem("playerName");
     const discordName = localStorage.getItem("discordName");
     sendMessage({
