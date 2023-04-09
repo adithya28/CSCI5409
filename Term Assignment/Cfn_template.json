@@ -326,6 +326,83 @@
         "5409Igw"
       ]
     },
+"5409APIDomain":{
+  "Type" : "AWS::ApiGateway::DomainName",
+  "Properties" : {
+    "DomainName" : "api.ad368540-ta5409.com",
+    "EndpointConfiguration" : {
+      "Types" : [ "REGIONAL" ]
+    },
+    "RegionalCertificateArn" : "arn:aws:acm:us-east-1:721956426461:certificate/d4b1e44e-8dfa-4ecf-a1ab-4a7a11cc8ceb",
+    "SecurityPolicy" : "TLS_1_2"
+  },
+  "DependsOn": [
+    "5409APIGateway"
+  ]
+},
+    "5409APIMapping":{
+  "Type" : "AWS::ApiGatewayV2::ApiMapping",
+  "Properties" : {
+    "ApiId" :  { "Ref" : "5409APIGateway" },
+    "DomainName" : { "Ref" : "5409APIDomain" },
+    "Stage" : "$default"
+  },
+  "DependsOn": [
+    "5409APIRecordSet"
+  ]
+},
+"5409APIRecordSet":{
+  "Type" : "AWS::Route53::RecordSet",
+  "Properties" : {
+    "AliasTarget" : {
+      "DNSName" : {
+        "Fn::GetAtt": [
+          "5409APIDomain",
+          "RegionalDomainName"
+        ]
+      },
+      "EvaluateTargetHealth" : false,
+      "HostedZoneId" : {
+        "Fn::GetAtt": [
+          "5409APIDomain",
+          "RegionalHostedZoneId"
+        ]
+      }
+    },
+    "HostedZoneName" : "ad368540-ta5409.com." ,
+    "Name" : "api.ad368540-ta5409.com.",
+    "Type" : "A"
+  },
+  "DependsOn": [
+    "5409APIDomain"
+  ]
+},
+    "5409ELBRecordSet":{
+      "Type" : "AWS::Route53::RecordSet",
+      "Properties" : {
+        "AliasTarget" : {
+          "DNSName" : {
+            "Fn::GetAtt": [
+              "5409ELB",
+              "DNSName"
+            ]
+          },
+          "EvaluateTargetHealth" : false,
+          "HostedZoneId" : {
+            "Fn::GetAtt": [
+              "5409ELB",
+              "CanonicalHostedZoneID"
+            ]
+          }
+        },
+        "HostedZoneName" : "ad368540-ta5409.com." ,
+        "Name" : "ad368540-ta5409.com.",
+        "Type" : "A"
+      },
+      "DependsOn": [
+        "5409ELB"
+      ]
+    },
     "ELBSG": {
       "Type": "AWS::EC2::SecurityGroup",
       "Properties": {
@@ -360,7 +437,7 @@
   "Type" : "AWS::EC2::LaunchTemplate",
   "Properties" : {
     "LaunchTemplateData" : {
-      "ImageId" : "String",
+      "ImageId" : "ami-05a2a019f39f9fdd4",
       "InstanceType" : "t2.micro",
       "KeyName" : "5409v1",
       "SecurityGroupIds" : [{
@@ -504,12 +581,45 @@
         "Description": "Lambda function with Discord Bot integration",
         "FunctionName": "5409lambda",
         "PackageType": "Zip",
-        "Role": "arn:aws:iam::721956426461:role/service-role/5409discordBot-role-d9hdtj57",
+        "Role": "arn:aws:iam::721956426461:role/5409LambdaRole",
         "Runtime": "python3.9",
-        "Handler": "lambda_handler",
+        "Handler": "lambda_function.lambda_handler",
         "Timeout": 10
       }
     },
+"5409NatGateway":{
+  "Type" : "AWS::EC2::NatGateway",
+  "Properties" : {
+    "AllocationId" : "eipalloc-07f2c13eb57cd62ca",
+    "SubnetId" :  {
+      "Fn::GetAtt": [
+        "publicSubnet",
+        "SubnetId"
+      ]
+    }
+  },
+  "DependsOn": [
+    "publicSubnet"]
+},
+"5409LambdaInvokePermission":{
+  "Type" : "AWS::Lambda::Permission",
+  "Properties" : {
+    "Action" : "lambda:InvokeFunction",
+    "FunctionName" : {
+      "Ref" : "5409Lambda"
+    },
+    "Principal" : "apigateway.amazonaws.com",
+    "SourceAccount" : "721956426461"
+  }
+},
+"5409NatGWRoute":{
+  "Type" : "AWS::EC2::Route",
+  "Properties" : {
+    "DestinationCidrBlock" : "0.0.0.0/0",
+    "NatGatewayId" : { "Ref" : "5409NatGateway" },
+    "RouteTableId" : { "Ref" : "privateRouteTable" },
+  }
+},
     "5409APIGateway": {
       "Type": "AWS::ApiGatewayV2::Api", 
       "Properties": {
@@ -519,7 +629,7 @@
           ]
         },
         "Description": "Api gateway to invoke lambda function that hosts the discord bot",
-        "DisableExecuteApiEndpoint": true,
+        "DisableExecuteApiEndpoint": false,
         "Name": "5409ApiGateway",
         "ProtocolType": "HTTP",
         "Target": {
